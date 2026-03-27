@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<title>Economía en Conexión</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6f9;
+padding:40px;
+}
+
+.panel{
+display:flex;
+gap:40px;
+}
+
+.box{
+background:white;
+padding:20px;
+border-radius:10px;
+width:300px;
+}
+
+input{
+width:100%;
+padding:8px;
+margin-top:8px;
+}
+
+button{
+margin-top:10px;
+padding:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Dashboard Evento Economía en Conexión</h1>
+
+<div class="panel">
+
+<div class="box">
+
+<h3>Ingresos</h3>
+
+<input id="precio" placeholder="Precio entrada">
+
+<input id="ventas" placeholder="Ventas proyectadas">
+
+<button onclick="calcular()">Calcular</button>
+
+</div>
+
+<div class="box">
+
+<h3>Agregar gasto</h3>
+
+<input id="nombreGasto" placeholder="Nombre gasto">
+
+<input id="valorGasto" placeholder="Costo">
+
+<button onclick="agregarGasto()">Agregar</button>
+
+<ul id="lista"></ul>
+
+</div>
+
+</div>
+
+<h2>Resultados</h2>
+
+<p>Ingresos: <span id="ingresos"></span></p>
+
+<p>Gastos: <span id="gastos"></span></p>
+
+<p>Resultado: <span id="resultado"></span></p>
+
+<canvas id="grafico"></canvas>
+
+<script>
+
+let gastos=[];
+
+let chart;
+
+function agregarGasto(){
+
+let nombre=document.getElementById("nombreGasto").value;
+
+let valor=parseFloat(document.getElementById("valorGasto").value);
+
+gastos.push({nombre,valor});
+
+let li=document.createElement("li");
+
+li.textContent=nombre+" - $"+valor;
+
+document.getElementById("lista").appendChild(li);
+
+calcular();
+
+}
+
+function calcular(){
+
+let precio=parseFloat(document.getElementById("precio").value)||0;
+
+let ventas=parseFloat(document.getElementById("ventas").value)||0;
+
+let ingresos=precio*ventas;
+
+let gastoTotal=gastos.reduce((a,b)=>a+b.valor,0);
+
+let resultado=ingresos-gastoTotal;
+
+document.getElementById("ingresos").textContent="$"+ingresos;
+
+document.getElementById("gastos").textContent="$"+gastoTotal;
+
+document.getElementById("resultado").textContent="$"+resultado;
+
+dibujarGrafico(ingresos,gastoTotal);
+
+}
+
+function dibujarGrafico(ingresos,gastos){
+
+let ctx=document.getElementById("grafico");
+
+if(chart) chart.destroy();
+
+chart=new Chart(ctx,{
+type:"bar",
+data:{
+labels:["Ingresos","Gastos"],
+datasets:[{
+label:"Balance del evento",
+data:[ingresos,gastos]
+}]
+}
+});
+
+}
+
+</script>
+
+</body>
+
+</html>
