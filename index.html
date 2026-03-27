@@ -113,22 +113,22 @@ display:block;
 <h3>Entradas</h3>
 
 <label>Precio VIP</label>
-<input id="vipPrecio">
+<input id="vipPrecio" type="number">
 
 <label>Ventas VIP</label>
-<input id="vipVentas">
+<input id="vipVentas" type="number">
 
 <label>Precio General</label>
-<input id="genPrecio">
+<input id="genPrecio" type="number">
 
 <label>Ventas General</label>
-<input id="genVentas">
+<input id="genVentas" type="number">
 
 <label>Precio Early Bird</label>
-<input id="earlyPrecio">
+<input id="earlyPrecio" type="number">
 
 <label>Ventas Early Bird</label>
-<input id="earlyVentas">
+<input id="earlyVentas" type="number">
 
 <button onclick="calcular()">Actualizar ingresos</button>
 
@@ -140,7 +140,7 @@ display:block;
 
 <input id="gastoNombre" placeholder="Concepto">
 
-<input id="gastoValor" placeholder="Costo">
+<input id="gastoValor" type="number" placeholder="Costo">
 
 <button onclick="agregarGasto()">Agregar</button>
 
@@ -153,19 +153,15 @@ display:block;
 <table>
 
 <thead>
-
 <tr>
 <th>Concepto</th>
 <th>Costo</th>
 <th>Editar</th>
 <th>Borrar</th>
 </tr>
-
 </thead>
 
-<tbody id="tablaGastos">
-
-</tbody>
+<tbody id="tablaGastos"></tbody>
 
 </table>
 
@@ -183,15 +179,8 @@ display:block;
 
 <script>
 
-let gastos = JSON.parse(localStorage.getItem("gastos")) || []
-
+let gastos=[]
 let chart
-
-function guardar(){
-
-localStorage.setItem("gastos",JSON.stringify(gastos))
-
-}
 
 function agregarGasto(){
 
@@ -204,8 +193,6 @@ return
 }
 
 gastos.push({nombre,valor})
-
-guardar()
 
 dibujarTabla()
 
@@ -222,19 +209,12 @@ tabla.innerHTML=""
 gastos.forEach((g,index)=>{
 
 tabla.innerHTML+=`
-
 <tr>
-
 <td>${g.nombre}</td>
-
 <td>$${g.valor}</td>
-
 <td><button onclick="editar(${index})">Editar</button></td>
-
 <td><button onclick="borrar(${index})">Borrar</button></td>
-
 </tr>
-
 `
 
 })
@@ -244,17 +224,12 @@ tabla.innerHTML+=`
 function editar(i){
 
 let nuevoNombre=prompt("Nuevo nombre",gastos[i].nombre)
-
 let nuevoValor=prompt("Nuevo valor",gastos[i].valor)
 
 gastos[i].nombre=nuevoNombre
-
 gastos[i].valor=parseFloat(nuevoValor)
 
-guardar()
-
 dibujarTabla()
-
 calcular()
 
 }
@@ -263,35 +238,36 @@ function borrar(i){
 
 gastos.splice(i,1)
 
-guardar()
-
 dibujarTabla()
-
 calcular()
 
 }
 
 function calcular(){
 
-let vip=(+vipPrecio.value||0)*(+vipVentas.value||0)
+let vipPrecio=parseFloat(document.getElementById("vipPrecio").value)||0
+let vipVentas=parseFloat(document.getElementById("vipVentas").value)||0
 
-let gen=(+genPrecio.value||0)*(+genVentas.value||0)
+let genPrecio=parseFloat(document.getElementById("genPrecio").value)||0
+let genVentas=parseFloat(document.getElementById("genVentas").value)||0
 
-let early=(+earlyPrecio.value||0)*(+earlyVentas.value||0)
+let earlyPrecio=parseFloat(document.getElementById("earlyPrecio").value)||0
+let earlyVentas=parseFloat(document.getElementById("earlyVentas").value)||0
 
-let ingresos=vip+gen+early
+let ingresos=vipPrecio*vipVentas + genPrecio*genVentas + earlyPrecio*earlyVentas
 
 let gastoTotal=gastos.reduce((a,b)=>a+b.valor,0)
 
 let resultado=ingresos-gastoTotal
 
-ingresosSpan.textContent="$"+ingresos
+document.getElementById("ingresos").textContent="$"+ingresos
+document.getElementById("gastos").textContent="$"+gastoTotal
 
-gastosSpan.textContent="$"+gastoTotal
+let res=document.getElementById("resultado")
 
-resultadoSpan.textContent="$"+resultado
+res.textContent="$"+resultado
 
-resultadoSpan.className=resultado>=0?"green":"red"
+res.className=resultado>=0?"green":"red"
 
 grafico(ingresos,gastoTotal)
 
@@ -305,28 +281,21 @@ if(chart) chart.destroy()
 
 chart=new Chart(ctx,{
 
-type:"doughnut",
+type:"bar",
 
 data:{
-
 labels:["Ingresos","Gastos"],
-
 datasets:[{
-
+label:"Balance del evento",
 data:[ingresos,gastos]
-
 }]
-
 }
 
 })
 
 }
 
-dibujarTabla()
-
 </script>
 
 </body>
-
 </html>
