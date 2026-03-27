@@ -2,9 +2,8 @@
 <html lang="es">
 
 <head>
-
 <meta charset="UTF-8">
-<title>Economía en Conexión</title>
+<title>Economía en Conexión - Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -12,13 +11,20 @@
 
 body{
 font-family:Arial;
-background:#f4f6f9;
+background:#eef4ff;
 padding:40px;
+}
+
+h1{
+text-align:center;
+color:#0a3d91;
 }
 
 .panel{
 display:flex;
-gap:40px;
+gap:30px;
+justify-content:center;
+margin-bottom:30px;
 }
 
 .box{
@@ -26,17 +32,75 @@ background:white;
 padding:20px;
 border-radius:10px;
 width:300px;
+box-shadow:0 5px 20px rgba(0,0,0,0.1);
+}
+
+h3{
+color:#0a3d91;
 }
 
 input{
 width:100%;
-padding:8px;
+padding:10px;
 margin-top:8px;
+margin-bottom:10px;
+border-radius:6px;
+border:1px solid #ccc;
 }
 
 button{
-margin-top:10px;
+background:#1f6fff;
+color:white;
+border:none;
 padding:10px;
+border-radius:6px;
+cursor:pointer;
+}
+
+button:hover{
+background:#1552c4;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+background:white;
+}
+
+th,td{
+padding:10px;
+border-bottom:1px solid #ddd;
+text-align:center;
+}
+
+th{
+background:#1f6fff;
+color:white;
+}
+
+.resultados{
+margin-top:30px;
+text-align:center;
+font-size:20px;
+}
+
+.ganancia{
+color:green;
+font-weight:bold;
+}
+
+.perdida{
+color:red;
+font-weight:bold;
+}
+
+canvas{
+margin-top:40px;
+max-width:700px;
+display:block;
+margin-left:auto;
+margin-right:auto;
 }
 
 </style>
@@ -45,19 +109,21 @@ padding:10px;
 
 <body>
 
-<h1>Dashboard Evento Economía en Conexión</h1>
+<h1>📊 Economía en Conexión - Dashboard Financiero</h1>
 
 <div class="panel">
 
 <div class="box">
 
-<h3>Ingresos</h3>
+<h3>Ingresos del evento</h3>
 
-<input id="precio" placeholder="Precio entrada">
+<label>Precio entrada</label>
+<input id="precio">
 
-<input id="ventas" placeholder="Ventas proyectadas">
+<label>Entradas vendidas (proyección)</label>
+<input id="ventas">
 
-<button onclick="calcular()">Calcular</button>
+<button onclick="calcular()">Actualizar</button>
 
 </div>
 
@@ -65,95 +131,180 @@ padding:10px;
 
 <h3>Agregar gasto</h3>
 
-<input id="nombreGasto" placeholder="Nombre gasto">
+<input id="nombreGasto" placeholder="Ej: Speaker">
 
 <input id="valorGasto" placeholder="Costo">
 
-<button onclick="agregarGasto()">Agregar</button>
-
-<ul id="lista"></ul>
+<button onclick="agregarGasto()">Agregar gasto</button>
 
 </div>
 
 </div>
 
-<h2>Resultados</h2>
+<table>
 
-<p>Ingresos: <span id="ingresos"></span></p>
+<thead>
 
-<p>Gastos: <span id="gastos"></span></p>
+<tr>
+<th>Concepto</th>
+<th>Costo</th>
+<th>Editar</th>
+<th>Borrar</th>
+</tr>
 
-<p>Resultado: <span id="resultado"></span></p>
+</thead>
+
+<tbody id="tablaGastos">
+
+</tbody>
+
+</table>
+
+<div class="resultados">
+
+<p>Ingresos: <span id="ingresos">$0</span></p>
+
+<p>Gastos totales: <span id="gastos">$0</span></p>
+
+<p>Resultado: <span id="resultado">$0</span></p>
+
+</div>
 
 <canvas id="grafico"></canvas>
 
 <script>
 
-let gastos=[];
-
-let chart;
+let gastos=[]
+let chart
 
 function agregarGasto(){
 
-let nombre=document.getElementById("nombreGasto").value;
+let nombre=document.getElementById("nombreGasto").value
+let valor=parseFloat(document.getElementById("valorGasto").value)
 
-let valor=parseFloat(document.getElementById("valorGasto").value);
+if(!nombre || !valor){
+alert("Completar datos")
+return
+}
 
-gastos.push({nombre,valor});
+gastos.push({nombre,valor})
 
-let li=document.createElement("li");
+dibujarTabla()
+calcular()
 
-li.textContent=nombre+" - $"+valor;
+}
 
-document.getElementById("lista").appendChild(li);
+function dibujarTabla(){
 
-calcular();
+let tabla=document.getElementById("tablaGastos")
+
+tabla.innerHTML=""
+
+gastos.forEach((gasto,index)=>{
+
+tabla.innerHTML+=`
+
+<tr>
+
+<td>${gasto.nombre}</td>
+
+<td>$${gasto.valor}</td>
+
+<td><button onclick="editarGasto(${index})">Editar</button></td>
+
+<td><button onclick="borrarGasto(${index})">Borrar</button></td>
+
+</tr>
+
+`
+
+})
+
+}
+
+function editarGasto(index){
+
+let nuevoNombre=prompt("Nuevo nombre",gastos[index].nombre)
+let nuevoValor=prompt("Nuevo valor",gastos[index].valor)
+
+gastos[index].nombre=nuevoNombre
+gastos[index].valor=parseFloat(nuevoValor)
+
+dibujarTabla()
+calcular()
+
+}
+
+function borrarGasto(index){
+
+gastos.splice(index,1)
+
+dibujarTabla()
+calcular()
 
 }
 
 function calcular(){
 
-let precio=parseFloat(document.getElementById("precio").value)||0;
+let precio=parseFloat(document.getElementById("precio").value)||0
+let ventas=parseFloat(document.getElementById("ventas").value)||0
 
-let ventas=parseFloat(document.getElementById("ventas").value)||0;
+let ingresos=precio*ventas
 
-let ingresos=precio*ventas;
+let gastoTotal=gastos.reduce((a,b)=>a+b.valor,0)
 
-let gastoTotal=gastos.reduce((a,b)=>a+b.valor,0);
+let resultado=ingresos-gastoTotal
 
-let resultado=ingresos-gastoTotal;
+document.getElementById("ingresos").textContent="$"+ingresos
+document.getElementById("gastos").textContent="$"+gastoTotal
 
-document.getElementById("ingresos").textContent="$"+ingresos;
+let res=document.getElementById("resultado")
 
-document.getElementById("gastos").textContent="$"+gastoTotal;
+res.textContent="$"+resultado
 
-document.getElementById("resultado").textContent="$"+resultado;
+if(resultado>=0){
 
-dibujarGrafico(ingresos,gastoTotal);
+res.className="ganancia"
+
+}else{
+
+res.className="perdida"
 
 }
 
-function dibujarGrafico(ingresos,gastos){
+grafico(ingresos,gastoTotal)
 
-let ctx=document.getElementById("grafico");
+}
 
-if(chart) chart.destroy();
+function grafico(ingresos,gastos){
+
+let ctx=document.getElementById("grafico")
+
+if(chart) chart.destroy()
 
 chart=new Chart(ctx,{
+
 type:"bar",
+
 data:{
+
 labels:["Ingresos","Gastos"],
+
 datasets:[{
+
 label:"Balance del evento",
+
 data:[ingresos,gastos]
+
 }]
+
 }
-});
+
+})
 
 }
 
 </script>
 
 </body>
-
 </html>
